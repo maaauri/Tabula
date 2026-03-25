@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
+    "@hookform/resolvers": "^5.2.2",
+    "@tanstack/react-query": "^5.95.2",
+    "axios": "^1.13.6",
+    "expo": "~55.0.8",
+    "expo-file-system": "^55.0.11",
+    "expo-print": "^55.0.9",
+    "expo-router": "^55.0.7",
+    "expo-secure-store": "^55.0.9",
+    "expo-sharing": "^55.0.14",
+    "expo-status-bar": "~55.0.4",
+    "nativewind": "^4.2.3",
+    "react": "19.2.0",
+    "react-hook-form": "^7.72.0",
+    "react-native": "0.83.2",
+    "tailwindcss": "^4.2.2",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}

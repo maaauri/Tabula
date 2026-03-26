@@ -4,9 +4,9 @@ export default function StudentsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#1d4ed8" },
+        headerStyle: { backgroundColor: "#6d28d9" },
         headerTintColor: "#fff",
-        headerTitleStyle: { fontWeight: "bold" },
+        headerTitleStyle: { fontWeight: "900" },
       }}
     />
   );

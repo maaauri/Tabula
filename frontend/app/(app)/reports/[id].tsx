@@ -9,7 +9,6 @@ import { useReport, useUpdateReport, useUpdateSection } from "../../../src/hooks
 import { useAuthStore } from "../../../src/store/authStore";
 import type { ReportSection } from "../../../src/types/report";
 import { getPdfUrl } from "../../../src/api/reports";
-import { API_BASE_URL } from "../../../src/utils/constants";
 
 function SectionEditor({
   section,
@@ -18,7 +17,7 @@ function SectionEditor({
 }: {
   section: ReportSection;
   reportId: string;
-  onRequestAi: (sectionKey: string) => void;
+  onRequestAi: (key: string) => void;
 }) {
   const [content, setContent] = useState(section.content);
   const [dirty, setDirty] = useState(false);
@@ -36,31 +35,42 @@ function SectionEditor({
   }, [section.content]);
 
   return (
-    <View className="bg-white rounded-xl mb-4 overflow-hidden border border-gray-100 shadow-sm">
-      <View className="bg-gray-50 px-4 py-3 flex-row items-center justify-between border-b border-gray-100">
-        <Text className="font-semibold text-gray-700 flex-1" numberOfLines={1}>{section.title}</Text>
-        <Pressable onPress={() => onRequestAi(section.section_key)} className="flex-row items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full">
-          <Ionicons name="sparkles" size={14} color="#1d4ed8" />
-          <Text className="text-blue-700 text-xs font-semibold">IA</Text>
+    <View className="bg-white rounded-3xl mb-4 overflow-hidden border-2 border-brand-100">
+      {/* Section header */}
+      <View className="px-4 py-3 flex-row items-center justify-between border-b border-brand-50">
+        <View className="flex-row items-center flex-1 gap-2">
+          <View className="w-2 h-2 rounded-full bg-brand-500" />
+          <Text className="font-bold text-brand-700 flex-1 text-sm" numberOfLines={1}>{section.title}</Text>
+        </View>
+        <Pressable
+          onPress={() => onRequestAi(section.section_key)}
+          className="flex-row items-center gap-1.5 bg-brand-600 px-3 py-1.5 rounded-xl"
+        >
+          <Ionicons name="sparkles" size={13} color="#fff" />
+          <Text className="text-white text-xs font-bold">Asistente IA</Text>
         </Pressable>
       </View>
+
       <TextInput
         value={content}
         onChangeText={(t) => { setContent(t); setDirty(true); }}
         onBlur={save}
         multiline
         placeholder="Escribe el contenido de esta sección..."
-        placeholderTextColor="#9ca3af"
-        className="px-4 py-3 text-base text-gray-800"
-        style={{ textAlignVertical: "top", minHeight: 120 }}
+        placeholderTextColor="#c4b5fd"
+        className="px-4 py-3 text-sm text-brand-800 leading-relaxed"
+        style={{ textAlignVertical: "top", minHeight: 110 }}
       />
+
       {dirty && (
-        <Pressable onPress={save} className="mx-4 mb-3 bg-blue-700 rounded-lg py-2 items-center">
-          {updateSection.isPending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text className="text-white text-sm font-semibold">Guardar</Text>
-          )}
+        <Pressable onPress={save} className="mx-4 mb-3 bg-accent-500 rounded-xl py-2.5 items-center flex-row justify-center gap-2">
+          {updateSection.isPending
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <>
+                <Ionicons name="save-outline" size={15} color="#fff" />
+                <Text className="text-white text-sm font-bold">Guardar</Text>
+              </>
+          }
         </Pressable>
       )}
     </View>
@@ -72,31 +82,30 @@ export default function ReportDetailScreen() {
   const navigation = useNavigation();
   const { data: report, isLoading } = useReport(id!);
   const updateReport = useUpdateReport(id!);
+  const updateSection = useUpdateSection(id!);
   const token = useAuthStore((s) => s.token);
 
   const [aiSectionKey, setAiSectionKey] = useState<string | null>(null);
   const [aiVisible, setAiVisible] = useState(false);
   const [sectionContents, setSectionContents] = useState<Record<string, string>>({});
-  const updateSection = useUpdateSection(id!);
 
   useEffect(() => {
     if (report) {
       navigation.setOptions({ title: report.title });
-      const contents: Record<string, string> = {};
-      report.sections.forEach((s) => { contents[s.section_key] = s.content; });
-      setSectionContents(contents);
+      const m: Record<string, string> = {};
+      report.sections.forEach((s) => { m[s.section_key] = s.content; });
+      setSectionContents(m);
     }
   }, [report]);
 
   const handleExportPdf = async () => {
-    const url = getPdfUrl(id!);
     try {
       const dest = FileSystem.documentDirectory + `informe_${id}.pdf`;
-      const result = await FileSystem.downloadAsync(url, dest, {
+      const res = await FileSystem.downloadAsync(getPdfUrl(id!), dest, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      await Sharing.shareAsync(result.uri, { mimeType: "application/pdf" });
-    } catch (err: any) {
+      await Sharing.shareAsync(res.uri, { mimeType: "application/pdf" });
+    } catch {
       Alert.alert("Error", "No se pudo exportar el PDF");
     }
   };
@@ -106,40 +115,41 @@ export default function ReportDetailScreen() {
     await updateSection.mutateAsync({ sectionKey, content: text });
   };
 
-  const handleMarkComplete = () => {
-    updateReport.mutate({ status: report?.status === "completed" ? "draft" : "completed" });
-  };
+  if (isLoading) return <ActivityIndicator className="mt-16" color="#7c3aed" size="large" />;
+  if (!report) return <Text className="text-center mt-16 text-brand-400">Informe no encontrado</Text>;
 
-  if (isLoading) return <ActivityIndicator className="mt-12" color="#1d4ed8" />;
-  if (!report) return <Text className="text-center mt-12 text-gray-500">Informe no encontrado</Text>;
-
+  const completed = report.status === "completed";
   const activeSection = report.sections.find((s) => s.section_key === aiSectionKey);
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-slate-50">
-      {/* Header actions */}
-      <View className="bg-white border-b border-gray-100 px-4 py-3 flex-row items-center justify-between">
-        <View className={`rounded-full px-3 py-1 ${report.status === "completed" ? "bg-green-100" : "bg-amber-100"}`}>
-          <Text className={`text-xs font-semibold ${report.status === "completed" ? "text-green-700" : "text-amber-700"}`}>
-            {report.status === "completed" ? "Completado" : "Borrador"}
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-brand-50">
+      {/* Toolbar */}
+      <View className="bg-white border-b-2 border-brand-50 px-4 py-3 flex-row items-center justify-between">
+        <View className={`rounded-full px-3 py-1 border ${completed ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200"}`}>
+          <Text className={`text-xs font-bold ${completed ? "text-green-700" : "text-amber-600"}`}>
+            {completed ? "✓ Completado" : "● Borrador"}
           </Text>
         </View>
         <View className="flex-row gap-2">
-          <Pressable onPress={handleMarkComplete} className="bg-gray-100 rounded-lg px-3 py-2">
-            <Text className="text-gray-700 text-sm font-medium">
-              {report.status === "completed" ? "Reabrir" : "Completar"}
-            </Text>
+          <Pressable
+            onPress={() => updateReport.mutate({ status: completed ? "draft" : "completed" })}
+            className="bg-brand-100 rounded-xl px-3 py-2"
+          >
+            <Text className="text-brand-700 text-xs font-bold">{completed ? "Reabrir" : "Completar"}</Text>
           </Pressable>
-          <Pressable onPress={handleExportPdf} className="bg-blue-700 rounded-lg px-3 py-2 flex-row items-center gap-1">
-            <Ionicons name="download-outline" size={16} color="#fff" />
-            <Text className="text-white text-sm font-semibold">PDF</Text>
+          <Pressable onPress={handleExportPdf} className="bg-accent-500 rounded-xl px-3 py-2 flex-row items-center gap-1.5">
+            <Ionicons name="download-outline" size={15} color="#fff" />
+            <Text className="text-white text-xs font-bold">PDF</Text>
           </Pressable>
         </View>
       </View>
 
       <ScrollView className="flex-1 px-4 pt-4">
         {report.period && (
-          <Text className="text-gray-500 text-sm mb-4">Período: {report.period}</Text>
+          <View className="flex-row items-center gap-1.5 mb-4">
+            <Ionicons name="calendar-outline" size={14} color="#a78bfa" />
+            <Text className="text-brand-400 text-sm font-semibold">{report.period}</Text>
+          </View>
         )}
 
         {report.sections.map((section) => (
@@ -150,7 +160,6 @@ export default function ReportDetailScreen() {
             onRequestAi={(key) => { setAiSectionKey(key); setAiVisible(true); }}
           />
         ))}
-
         <View className="h-8" />
       </ScrollView>
 

@@ -5,6 +5,34 @@ import { useAuth } from "../../src/hooks/useAuth";
 import { useReports } from "../../src/hooks/useReports";
 import { useStudents } from "../../src/hooks/useStudents";
 
+interface QuickActionProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  subtitle: string;
+  iconBg: string;
+  onPress: () => void;
+}
+
+function QuickAction({ icon, label, subtitle, iconBg, onPress }: QuickActionProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="bg-white rounded-3xl p-5 mb-3 border-2 border-brand-100 active:opacity-80"
+    >
+      <View className="flex-row items-center">
+        <View className={`w-14 h-14 rounded-2xl ${iconBg} items-center justify-center mr-4`}>
+          <Ionicons name={icon} size={28} color="#fff" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-brand-800 font-bold text-base">{label}</Text>
+          <Text className="text-brand-400 text-sm mt-0.5">{subtitle}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#c4b5fd" />
+      </View>
+    </Pressable>
+  );
+}
+
 export default function DashboardScreen() {
   const { user, logout } = useAuth();
   const { data: students } = useStudents();
@@ -12,60 +40,71 @@ export default function DashboardScreen() {
   const router = useRouter();
 
   return (
-    <ScrollView className="flex-1 bg-slate-50">
-      <View className="bg-blue-700 px-6 pt-6 pb-10">
-        <Text className="text-white text-2xl font-bold">Hola, {user?.full_name?.split(" ")[0]}</Text>
-        <Text className="text-blue-200 mt-1">Plataforma PIE · Tabula</Text>
+    <ScrollView className="flex-1 bg-brand-50">
+      {/* Header */}
+      <View className="bg-brand-700 px-6 pt-6 pb-16">
+        <Text className="text-brand-300 text-sm font-semibold mb-1">Bienvenido/a,</Text>
+        <Text className="text-white text-2xl font-black">{user?.full_name}</Text>
+        <Text className="text-brand-300 text-sm mt-1">Plataforma PIE · Tabula</Text>
       </View>
 
-      <View className="-mt-6 mx-4 flex-row gap-3">
-        <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm items-center">
-          <Text className="text-3xl font-bold text-blue-700">{students?.length ?? 0}</Text>
-          <Text className="text-gray-500 text-sm mt-1">Estudiantes</Text>
+      {/* Stats */}
+      <View className="mx-4 -mt-8 flex-row gap-3 mb-5">
+        <View className="flex-1 bg-white rounded-3xl p-5 items-center border-2 border-brand-100">
+          <View className="w-12 h-12 rounded-2xl bg-brand-600 items-center justify-center mb-2">
+            <Ionicons name="people" size={22} color="#fff" />
+          </View>
+          <Text className="text-3xl font-black text-brand-700">{students?.length ?? 0}</Text>
+          <Text className="text-brand-400 text-xs font-semibold mt-0.5">Estudiantes</Text>
         </View>
-        <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm items-center">
-          <Text className="text-3xl font-bold text-blue-700">{reports?.length ?? 0}</Text>
-          <Text className="text-gray-500 text-sm mt-1">Informes</Text>
+        <View className="flex-1 bg-white rounded-3xl p-5 items-center border-2 border-accent-400">
+          <View className="w-12 h-12 rounded-2xl bg-accent-500 items-center justify-center mb-2">
+            <Ionicons name="document-text" size={22} color="#fff" />
+          </View>
+          <Text className="text-3xl font-black text-accent-600">{reports?.length ?? 0}</Text>
+          <Text className="text-brand-400 text-xs font-semibold mt-0.5">Informes</Text>
         </View>
       </View>
 
-      <View className="px-4 mt-6">
-        <Text className="text-lg font-semibold text-gray-800 mb-3">Accesos rápidos</Text>
+      {/* Quick actions */}
+      <View className="px-4">
+        <Text className="text-brand-800 font-black text-base mb-3 uppercase tracking-wider text-xs">Acciones rápidas</Text>
 
-        <Pressable
+        <QuickAction
+          icon="person-add"
+          label="Agregar estudiante"
+          subtitle="Registrar nuevo perfil PIE"
+          iconBg="bg-brand-600"
           onPress={() => router.push("/(app)/students/new")}
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center shadow-sm border border-gray-100"
-        >
-          <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-3">
-            <Ionicons name="person-add-outline" size={20} color="#1d4ed8" />
-          </View>
-          <View>
-            <Text className="font-semibold text-gray-800">Agregar estudiante</Text>
-            <Text className="text-gray-500 text-sm">Registrar nuevo estudiante PIE</Text>
-          </View>
-        </Pressable>
-
-        <Pressable
+        />
+        <QuickAction
+          icon="add-circle"
+          label="Crear informe"
+          subtitle="Nuevo informe PIE semestral"
+          iconBg="bg-accent-500"
           onPress={() => router.push("/(app)/reports/new")}
-          className="bg-white rounded-xl p-4 mb-3 flex-row items-center shadow-sm border border-gray-100"
-        >
-          <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center mr-3">
-            <Ionicons name="add-circle-outline" size={20} color="#16a34a" />
-          </View>
-          <View>
-            <Text className="font-semibold text-gray-800">Crear informe</Text>
-            <Text className="text-gray-500 text-sm">Nuevo informe PIE semestral</Text>
-          </View>
-        </Pressable>
+        />
+        <QuickAction
+          icon="people"
+          label="Ver estudiantes"
+          subtitle="Gestionar todos los estudiantes"
+          iconBg="bg-brand-500"
+          onPress={() => router.push("/(app)/students")}
+        />
+        <QuickAction
+          icon="document-text"
+          label="Ver informes"
+          subtitle="Revisar y editar informes"
+          iconBg="bg-accent-600"
+          onPress={() => router.push("/(app)/reports")}
+        />
       </View>
 
-      <View className="px-4 mt-2 mb-8">
-        <Pressable
-          onPress={logout}
-          className="bg-red-50 rounded-xl p-4 flex-row items-center border border-red-100"
-        >
-          <Ionicons name="log-out-outline" size={20} color="#dc2626" />
-          <Text className="text-red-600 font-medium ml-2">Cerrar sesión</Text>
+      {/* Logout */}
+      <View className="px-4 mt-4 mb-10">
+        <Pressable onPress={logout} className="flex-row items-center justify-center py-4 gap-2">
+          <Ionicons name="log-out-outline" size={18} color="#a78bfa" />
+          <Text className="text-brand-400 font-semibold text-sm">Cerrar sesión</Text>
         </Pressable>
       </View>
     </ScrollView>

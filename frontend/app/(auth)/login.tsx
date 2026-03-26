@@ -11,80 +11,74 @@ const schema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
 });
-
 type FormData = z.infer<typeof schema>;
 
 export default function LoginScreen() {
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
       await login(data.email, data.password);
-    } catch (err: any) {
-      Alert.alert("Error", err?.response?.data?.detail ?? "Credenciales incorrectas");
+    } catch {
+      Alert.alert("Error", "Credenciales incorrectas. Verifica tu email y contraseña.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 bg-slate-50"
-    >
-      <ScrollView contentContainerClassName="flex-1 justify-center px-6">
-        <View className="mb-10 items-center">
-          <View className="w-16 h-16 rounded-2xl bg-blue-700 items-center justify-center mb-4">
-            <Text className="text-white text-3xl font-bold">T</Text>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-brand-700">
+      <ScrollView contentContainerClassName="flex-1 justify-end">
+
+        {/* Hero */}
+        <View className="flex-1 items-center justify-center px-6 pt-16 pb-8">
+          <View className="w-24 h-24 rounded-3xl bg-white/20 items-center justify-center mb-5 border-2 border-white/30">
+            <Text className="text-white text-5xl font-black">T</Text>
           </View>
-          <Text className="text-3xl font-bold text-gray-900">Tabula</Text>
-          <Text className="text-gray-500 mt-1">Plataforma PIE para educadores</Text>
+          <Text className="text-white text-4xl font-black tracking-tight">Tabula</Text>
+          <Text className="text-brand-300 text-base mt-2 text-center">
+            Plataforma PIE para educadores chilenos
+          </Text>
         </View>
 
-        <View className="bg-white rounded-2xl p-6 shadow-sm">
-          <Text className="text-xl font-semibold text-gray-800 mb-6">Iniciar sesión</Text>
+        {/* Card */}
+        <View className="bg-white rounded-t-3xl px-6 pt-8 pb-10">
+          <Text className="text-2xl font-black text-brand-800 mb-1">Iniciar sesión</Text>
+          <Text className="text-brand-400 text-sm mb-6">Ingresa con tu cuenta de educador</Text>
 
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Correo electrónico"
-                placeholder="educador@escuela.cl"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={errors.email?.message}
-              />
-            )}
-          />
+          <Controller control={control} name="email" render={({ field: { onChange, value } }) => (
+            <Input
+              label="Correo electrónico"
+              placeholder="educador@escuela.cl"
+              value={value}
+              onChangeText={onChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={errors.email?.message}
+            />
+          )} />
 
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Contraseña"
-                placeholder="••••••••"
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry
-                error={errors.password?.message}
-              />
-            )}
-          />
+          <Controller control={control} name="password" render={({ field: { onChange, value } }) => (
+            <Input
+              label="Contraseña"
+              placeholder="••••••••"
+              value={value}
+              onChangeText={onChange}
+              secureTextEntry
+              error={errors.password?.message}
+            />
+          )} />
 
-          <Button title="Ingresar" onPress={handleSubmit(onSubmit)} loading={loading} />
+          <View className="mt-2">
+            <Button title="Ingresar" onPress={handleSubmit(onSubmit)} loading={loading} />
+          </View>
         </View>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );

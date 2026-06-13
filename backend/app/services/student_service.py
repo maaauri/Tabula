@@ -20,7 +20,7 @@ async def get_student(db: AsyncSession, student_id: uuid.UUID) -> Student | None
 async def create_student(db: AsyncSession, data: StudentCreate, educator_id: uuid.UUID) -> Student:
     student = Student(
         **data.model_dump(),
-        assigned_educator_id=data.assigned_educator_id or educator_id,
+        assigned_educator_id=educator_id,
     )
     db.add(student)
     await db.commit()

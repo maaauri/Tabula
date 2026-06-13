@@ -13,7 +13,6 @@ class StudentCreate(BaseModel):
     school_name: str | None = None
     diagnosis: str | None = None
     needs: list[str] = []
-    assigned_educator_id: uuid.UUID | None = None
 
 
 class StudentUpdate(BaseModel):
@@ -25,7 +24,6 @@ class StudentUpdate(BaseModel):
     school_name: str | None = None
     diagnosis: str | None = None
     needs: list[str] | None = None
-    assigned_educator_id: uuid.UUID | None = None
 
 
 class StudentOut(BaseModel):

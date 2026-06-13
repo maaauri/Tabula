@@ -19,7 +19,6 @@ class UserCreate(BaseModel):
     email: EmailStr
     full_name: str
     password: str
-    role: str = "educator"
 
 
 class UserUpdate(BaseModel):

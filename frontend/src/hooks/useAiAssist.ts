@@ -58,8 +58,10 @@ export function useAiAssist(): UseAiAssistResult {
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
-            const chunk = line.slice(6);
-            if (chunk === "[DONE]") break;
+            const payload = line.slice(6);
+            if (payload === "[DONE]") continue;
+            // Chunks are JSON-encoded strings to preserve newlines in SSE
+            const chunk = JSON.parse(payload) as string;
             setStreamedText((prev) => prev + chunk);
           }
         }

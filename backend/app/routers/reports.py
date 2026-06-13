@@ -1,3 +1,4 @@
+import json
 import uuid
 from typing import AsyncGenerator
 
@@ -16,7 +17,7 @@ from app.schemas.report import (
     ReportTemplateOut,
     ReportUpdate,
 )
-from app.services import ai_service, report_service
+from app.services import ai_service, report_service, student_service
 from app.utils.pdf_builder import build_report_pdf
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -36,6 +37,9 @@ async def create_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    student = await student_service.get_student(db, data.student_id)
+    if not student or student.assigned_educator_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
     return await report_service.create_report(db, data, current_user.id)
 
 
@@ -143,7 +147,8 @@ async def ai_assist(
 
     async def event_stream() -> AsyncGenerator[bytes, None]:
         async for chunk in ai_service.stream_ai_assist(student, section, data.prompt, data.mode):
-            yield f"data: {chunk}\n\n".encode("utf-8")
+            # JSON-encode so chunks containing newlines don't break SSE framing
+            yield f"data: {json.dumps(chunk)}\n\n".encode("utf-8")
         yield b"data: [DONE]\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
